@@ -1,6 +1,13 @@
 /*
 Simple DigitalIO: 
   - Detect the state of a button and turn on/off a LED
+
+JTAG Pin
+TMS: GIO14
+TDI: GPIO12
+TCKL: GPIO13
+TDO: GPIO15
+  
 */
 #include <Arduino.h>
 #define PIN_SWITCH 23
