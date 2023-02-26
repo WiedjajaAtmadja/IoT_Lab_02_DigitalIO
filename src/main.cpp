@@ -1,10 +1,15 @@
 /*
 Simple DigitalIO: 
   - Detect the state of a button and turn on/off a LED
+  - Problems: If user press switch, blinking LED will stop
 */
 #include <Arduino.h>
 #define PIN_SWITCH 23
 int nCount = 0;
+int nLedState=HIGH;
+unsigned long nLastMillis = 0;
+volatile bool fCounterUpdated = false;
+
 void setup() {
   uint32_t chipId = 0;
 
@@ -35,13 +40,18 @@ void loop() {
   // if user push the button
   if (digitalRead(PIN_SWITCH) == LOW) {
     nCount++;
-    Serial.printf("Button pressed, Count: %d", nCount);
+    Serial.printf("Button pressed, Count: %d\n", nCount);
     // wait until the button is released
     while(digitalRead(PIN_SWITCH) == LOW) 
       delay(1);
   } 
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(1000);
+
+  // if millis is elapsed 1 second
+  unsigned long millisNow = millis();
+  if (millisNow-nLastMillis>=1000) {
+    nLastMillis = millisNow;
+    Serial.printf("%d Led: %s\n", millisNow/1000, nLedState?"ON":"OFF");
+    digitalWrite(LED_BUILTIN, nLedState);
+    nLedState=!nLedState;
+  }
 }
