@@ -1,26 +1,23 @@
 /*
-Simple DigitalIO: 
+Simple DigitalIO to perform blink and button press: 
   - Detect the state of a button and turn on/off a LED
-Problems: 
-- count is not correct (debounce problem)
 */
 #include <Arduino.h>
 #include <Ticker.h>
+#include <Bounce2.h>
+
 #define PIN_SWITCH 23
 int nCount = 0;
-int nLedState = HIGH;
-volatile bool fSwitchPressed = false;
+Bounce2::Button button = Bounce2::Button();
 
 Ticker ticker1Sec;
+Ticker tickerLedOff;
 void OnTimer1Sec()
 {
-  digitalWrite(LED_BUILTIN, nLedState);
-  nLedState = !nLedState;
-}
-
-IRAM_ATTR void onSwitchPressedISR() {
-  nCount++;
-  fSwitchPressed = true;
+  digitalWrite(LED_BUILTIN, HIGH);
+  tickerLedOff.attach_ms(20, []() {
+    digitalWrite(LED_BUILTIN, LOW);
+  });
 }
 
 void setup() {
@@ -46,15 +43,18 @@ void setup() {
   // print ESP32 SDK version
   Serial.printf("ESP32 SDK version: %s\n", ESP.getSdkVersion());
 
-  // attach the interrupt service routine to the falling edge of the switch
-  attachInterrupt(digitalPinToInterrupt(PIN_SWITCH), onSwitchPressedISR, FALLING);
+// setup Bounce2 
+  button.attach(PIN_SWITCH);
+  button.interval(5); // interval in ms
+  button.setPressedState(LOW);
   ticker1Sec.attach(1, OnTimer1Sec);
   Serial.println("System ready");
 }
 
 void loop() {
-  if (fSwitchPressed) {
-    fSwitchPressed = false;
-    Serial.printf("Button pressed, Count: %d \n", nCount);
+  button.update();
+  if (button.pressed()) {
+    nCount++;
+    Serial.printf("Button pressed: %d times\n", nCount);
   }
 }
