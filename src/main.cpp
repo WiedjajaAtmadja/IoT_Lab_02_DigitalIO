@@ -1,43 +1,28 @@
+/*
+Simple DigitalIO: 
+  - Detect the state of a button and turn on/off a LED
+*/
 #include <Arduino.h>
 #define PIN_SWITCH 23
-int nCount =0;
-volatile bool fCounterUpdated = false;
-
-IRAM_ATTR void onSwitchPressed() 
-{ 
-  nCount++; 
-  fCounterUpdated = true;
-}
-
+int nCount = 0;
 void setup() {
- pinMode(LED_BUILTIN, OUTPUT);
- pinMode(PIN_SWITCH, INPUT);
- attachInterrupt(digitalPinToInterrupt(PIN_SWITCH), onSwitchPressed, FALLING);
- Serial.begin(115200);
+  pinMode(PIN_SWITCH, INPUT_PULLUP);
+  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(115200);
+  Serial.println("System ready");
 }
-
-int nLedState=HIGH;
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  // if(digitalRead(PIN_SWITCH) == LOW){
-  //   while (digitalRead(PIN_SWITCH) == LOW); 
-    
-  //   nCount++;
-  //   Serial.printf("Count: %d\n", nCount);
-  // }
-
-  if (fCounterUpdated) {
-    Serial.printf("Count: %d\n", nCount);
-    fCounterUpdated = false;
-  }
-  
-  if (millis() % 1000 == 0) {
-    digitalWrite(LED_BUILTIN, nLedState);
-    nLedState=!nLedState;
-  }
-
-  // delay(1000);
-  // digitalWrite(LED_BUILTIN, LOW);
-  // delay(1000);
+  // if user push the button
+  if (digitalRead(PIN_SWITCH) == LOW) {
+    nCount++;
+    Serial.printf("Button pressed, Count: %d", nCount);
+    // wait until the button is released
+    while(digitalRead(PIN_SWITCH) == LOW) 
+      delay(1);
+  } 
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(1000);
 }
