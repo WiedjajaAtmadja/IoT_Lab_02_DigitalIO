@@ -2,16 +2,25 @@
 Simple DigitalIO: 
   - Detect the state of a button and turn on/off a LED
 Problems: 
-- Sometimes when the button is pressed, ESP32 restart
-- Sometimes count is not correct (debounce problem)
+- count is not correct (debounce problem)
 */
 #include <Arduino.h>
+#include <Ticker.h>
 #define PIN_SWITCH 23
 int nCount = 0;
+int nLedState = HIGH;
+volatile bool fSwitchPressed = false;
+
+Ticker ticker1Sec;
+void OnTimer1Sec()
+{
+  digitalWrite(LED_BUILTIN, nLedState);
+  nLedState = !nLedState;
+}
 
 IRAM_ATTR void onSwitchPressedISR() {
   nCount++;
-  Serial.printf("Button pressed, Count: %d\n", nCount);
+  fSwitchPressed = true;
 }
 
 void setup() {
@@ -39,12 +48,13 @@ void setup() {
 
   // attach the interrupt service routine to the falling edge of the switch
   attachInterrupt(digitalPinToInterrupt(PIN_SWITCH), onSwitchPressedISR, FALLING);
+  ticker1Sec.attach(1, OnTimer1Sec);
   Serial.println("System ready");
 }
 
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(1000);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(1000);
+  if (fSwitchPressed) {
+    fSwitchPressed = false;
+    Serial.printf("Button pressed, Count: %d \n", nCount);
+  }
 }
