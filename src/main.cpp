@@ -15,7 +15,7 @@ Ticker tickerLedOff;
 void OnTimer1Sec()
 {
   digitalWrite(LED_BUILTIN, HIGH);
-  tickerLedOff.attach_ms(20, []() {
+  tickerLedOff.once_ms(20, []() {
     digitalWrite(LED_BUILTIN, LOW);
   });
 }
