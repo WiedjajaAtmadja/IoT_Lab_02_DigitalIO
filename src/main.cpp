@@ -20,12 +20,10 @@ void OnTimer1Sec()
   });
 }
 
-void setup() {
+void getChipInfo()
+{
   uint32_t chipId = 0;
 
-  pinMode(PIN_SWITCH, INPUT_PULLUP);
-  pinMode(LED_BUILTIN, OUTPUT);
-  Serial.begin(115200);
   for(int i=0; i<17; i=i+8) {
 	  chipId |= ((ESP.getEfuseMac() >> (40 - i)) & 0xff) << i;
 	}
@@ -42,11 +40,19 @@ void setup() {
   Serial.printf("Free heap : %d\n", ESP.getFreeHeap());
   // print ESP32 SDK version
   Serial.printf("ESP32 SDK version: %s\n", ESP.getSdkVersion());
+}
+
+void setup() {
+  pinMode(PIN_SWITCH, INPUT_PULLUP);
+  pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(115200);
 
 // setup Bounce2 
   button.attach(PIN_SWITCH);
   button.interval(5); // interval in ms
   button.setPressedState(LOW);
+
+  getChipInfo();
   ticker1Sec.attach(1, OnTimer1Sec);
   Serial.println("System ready");
 }
